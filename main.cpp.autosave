@@ -72,100 +72,87 @@ int main(int argc, char *argv[])
                         qDebug() << "Folder is OK!";
 
 
-                        QRegularExpression reA("^[ \\t]+|");
+                        /*
+                         * loop data from database
+                         * get regex for brack line in receved data
+                         * stream it to file with html code
+                         */
 
-                        QRegularExpressionMatchIterator i = reA.globalMatch(Body);
-                        while (i.hasNext()) {
-                            QRegularExpressionMatch match = i.next();
-                            if (match.hasMatch()) {
-                                 qDebug() << match.captured();
+                        QFile DataFile(DatabasePath+"Data & Photos/"+ProductName+"/"+"DataFile.txt");
+                        if (DataFile.open(QFile::WriteOnly | QFile::Text | QIODevice::Append)) {
+
+                            /*
+                             * Starting the template file for stream in
+                             */
+
+                            QTextStream StreamToFile(&DataFile);
+
+                            /*
+                             * Writing start of the file schema
+                             * in html form from another file
+                             */
+
+                            QFile HeaderFile(TemplatePath+TemplateName);
+                            if(HeaderFile.open((QIODevice::ReadOnly | QIODevice::Text))) {
+                                QTextStream StreamFromFile(&HeaderFile);
+                                while(!StreamFromFile.atEnd()) {
+                                    StreamToFile << StreamFromFile.readLine();
+                                }
+
+                                HeaderFile.flush();
+                                HeaderFile.close();
                             }
-                            else {
-                                qDebug() << "No match Found!";
+
+                            /*
+                            * Starting schama afer the template header
+                            */
+
+                            StreamToFile << "<table border='0'>";
+
+                            /*
+                            * Starting schama for the Data from the Database
+                            */
+
+                            /*
+                             * Geting every \n brake line from all data
+                             * and sterating it for each <tr><td>
+                             */
+
+                            {
+                                StreamToFile << "<tr>";
+                                                "      <th rowspan='{checkItems}'>" << ProductName << "</th>";
+
+                                int checkItems = 0;
+                                QRegularExpression reA("([A-Za-z0-9:\\s,/.&)(~\"\\n\\r][^$\\r\\n])+[^$\\r\\n]+");
+
+                                QRegularExpressionMatchIterator i = reA.globalMatch(Network);
+                                while (i.hasNext()) {
+                                    QRegularExpressionMatch match = i.next();
+                                    if (match.hasMatch()) {
+
+                                         qDebug() << "<tr><td>" << match.captured(0) << "<tr><td>";
+                                         checkItems++;
+                                    }
+                                }
+                                qDebug() << checkItems+1;
                             }
+
+                            
+                            /*
+                             * Writing end of file schema
+                             * in html form
+                             */
+
+                            StreamToFile << "</table>";
+
+                            // Flushing the file
+                            // and closing it
+
+                            DataFile.flush();
+                            DataFile.close();
+                            qDebug() << "file done!";
+
                         }
-
-
-
-//                        /*
-//                         * loop data from database
-//                         * get regex for brack line in receved data
-//                         * stream it to file with html code
-//                         */
-
-//                        QFile DataFile(DatabasePath+"Data & Photos/"+ProductName+"/"+"DataFile.txt");
-//                        if (DataFile.open(QFile::WriteOnly | QFile::Text | QIODevice::Append)) {
-
-//                            /*
-//                             * Starting the template file for stream in
-//                             */
-
-//                            QTextStream StreamToFile(&DataFile);
-
-//                            /*
-//                             * Writing start of the file schema
-//                             * in html form from another file
-//                             */
-
-//                            QFile HeaderFile(TemplatePath+TemplateName);
-//                            if(HeaderFile.open((QIODevice::ReadOnly | QIODevice::Text))) {
-//                                QTextStream StreamFromFile(&HeaderFile);
-//                                while(!StreamFromFile.atEnd()) {
-//                                    StreamToFile << StreamFromFile.readLine();
-//                                }
-
-//                                HeaderFile.flush();
-//                                HeaderFile.close();
-//                            }
-
-//                            /*
-//                            * Starting schama afer the template header
-//                            */
-
-//                            StreamToFile << "<table border='0'>";
-
-//                            /*
-//                            * Starting schama for the Data from the Database
-//                            */
-
-//                            /*
-//                             * Geting every \n brake line from all data
-//                             * and sterating it for each <tr><td>
-//                             */
-
-//                            QRegularExpression reA("(<bar [se]>[^<]+</bar>)");
-
-//                            QRegularExpressionMatchIterator i = reA.globalMatch(Network);
-//                            while (i.hasNext()) {
-//                                QRegularExpressionMatch match = i.next();
-//                                if (match.hasMatch()) {
-//                                     qDebug() << match.captured(0);
-//                                }
-//                            }
-
-//                            StreamToFile << "<tr>"
-//                                            "      <th rowspan='{RowNumber}'>" << ProductName << "</th>"
-//                                            "      <tr><td>Technology	 : GSM / HSPA / LTE</td></tr>"
-//                                            "      <tr><td>Speed	 : HSPA 42.2/5.76 Mbps, LTE Cat4 150/50 Mbps </td></tr>"
-//                                            "      <tr><td>GPRS	 : Yes </td></tr>"
-//                                            "      <tr><td>EDGE : 	Yes </td></tr>"
-//                                            "</tr>";
-
-//                            /*
-//                             * Writing end of file schema
-//                             * in html form
-//                             */
-
-//                            StreamToFile << "</table>";
-
-//                            // Flushing the file
-//                            // and closing it
-
-//                            DataFile.flush();
-//                            DataFile.close();
-//                            qDebug() << "file done!";
-
-//                        }
 
                     }
                     else {
