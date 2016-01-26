@@ -3,6 +3,7 @@
 
 void CreateFileWithHTMLCode(QString ProductName);
 bool MatchingFolderNameWithProductName(QString folderName);
+void setTableNames();
 
 /*
  *  Globle variables
@@ -13,10 +14,20 @@ QString FolderPath = "E:/Projects/Gallopmedia Work/Eltamimi/Data & Photos/";
 QString DatabasePath = "E:/Projects/Gallopmedia Work/Eltamimi/";
 QString TemplatePath = DatabasePath;
 QString TemplateName = "template.html";
+QList<QString> TableNames;
+int RecordEnd = 14;
+
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+
+
+   /*
+    * Activating this stupid code
+    * for setting all the table names
+    */
+    setTableNames();
 
    /*
     * Database Connection
@@ -56,21 +67,10 @@ int main(int argc, char *argv[])
                     //         << "Product Name:" << query.value(1).toString();
 
                     if(MatchingFolderNameWithProductName(query.value(1).toString()) == true) {
-
-                        // Set Table Header to QString
-                        QString ProductName = query.value(1).toString(); QString Network = query.value(2).toString();
-                        QString Launch = query.value(3).toString(); QString Body = query.value(4).toString();
-                        QString Display = query.value(5).toString(); QString Platform = query.value(6).toString();
-                        QString Memory = query.value(7).toString(); QString Camera = query.value(8).toString();
-                        QString Sound = query.value(9).toString(); QString Comms = query.value(10).toString();
-                        QString Features = query.value(11).toString(); QString Battery = query.value(12).toString();
-                        QString MISC = query.value(13).toString(); QString Tests = query.value(14).toString();
-
-
+                        QString ProductName = query.value(1).toString();
                         // if return true
                         // get full path
                         qDebug() << "Folder is OK!";
-
 
                         /*
                          * loop data from database
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
                          * stream it to file with html code
                          */
 
-                        QFile DataFile(DatabasePath+"Data & Photos/"+ProductName+"/"+"DataFile.txt");
+                        QFile DataFile(DatabasePath+"Data & Photos/"+ProductName+"/"+"DataFile.html");
                         if (DataFile.open(QFile::WriteOnly | QFile::Text | QIODevice::Append)) {
 
                             /*
@@ -118,31 +118,41 @@ int main(int argc, char *argv[])
                              * and sterating it for each <tr><td>
                              */
 
-                            {
-                                StreamToFile << "<tr>";
-                                                "      <th rowspan='{checkItems}'>" << ProductName << "</th>";
-
+                            int RecordStart = 0;
+                            while(RecordStart != RecordEnd) {
                                 int checkItems = 0;
+                                QList<QString> trtdList;
+
                                 QRegularExpression reA("([A-Za-z0-9:\\s,/.&)(~\"\\n\\r][^$\\r\\n])+[^$\\r\\n]+");
 
-                                QRegularExpressionMatchIterator i = reA.globalMatch(Network);
+                                QRegularExpressionMatchIterator i = reA.globalMatch(query.value(RecordStart).toString());
                                 while (i.hasNext()) {
                                     QRegularExpressionMatch match = i.next();
                                     if (match.hasMatch()) {
-
-                                         qDebug() << "<tr><td>" << match.captured(0) << "<tr><td>";
+                                         //qDebug() << "<tr><td>" << match.captured(0) << "<tr><td>";
+                                         trtdList.push_back(match.captured(0));
                                          checkItems++;
                                     }
                                 }
-                                qDebug() << checkItems+1;
-                            }
-                            StreamToFile << "<tr>"
-                                            "      <th rowspan='{checkItems}'>" << ProductName << "</th>"
-                                            "      <tr><td>Technology	 : GSM / HSPA / LTE</td></tr>"
-                                            "      <tr><td>Speed	 : HSPA 42.2/5.76 Mbps, LTE Cat4 150/50 Mbps </td></tr>"
-                                            "      <tr><td>GPRS	 : Yes </td></tr>"
-                                            "      <tr><td>EDGE : 	Yes </td></tr>"
-                                            "</tr>";
+
+                                if(RecordStart == 0) {
+                                    StreamToFile << "<tr>"
+                                                 << "<th>" << TableNames.at(RecordStart) << "</th>";
+                                } else {
+
+                                StreamToFile << "<tr>"
+                                             << "<th rowspan='" << checkItems+1 << "'>" << TableNames.at(RecordStart) << "</th>";
+                                }
+
+                                for(int j=0;j<trtdList.count();j++)
+                                {
+                                    StreamToFile << "<tr><td>" << trtdList.at(j) << "</tr></td>";
+                                }
+
+                                StreamToFile << "</tr>";
+                                RecordStart++;
+
+        }
 
                             /*
                              * Writing end of file schema
@@ -228,3 +238,27 @@ void CreateFileWithHTMLCode(QString ProductName) {
     file.close();
 }
 
+
+void setTableNames()
+{
+   /*
+    * Staticlly added to avoid lots of codes
+    * will be modifyed later
+    */
+
+    TableNames.push_front("TESTS");
+    TableNames.push_front("MISC");
+    TableNames.push_front("Battery");
+    TableNames.push_front("Features");
+    TableNames.push_front("COMMS");
+    TableNames.push_front("Sound");
+    TableNames.push_front("Camera");
+    TableNames.push_front("Memory");
+    TableNames.push_front("Platform");
+    TableNames.push_front("Display");
+    TableNames.push_front("Body");
+    TableNames.push_front("Launch");
+    TableNames.push_front("Network");
+    TableNames.push_front("Product Name");
+
+}
