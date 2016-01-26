@@ -14,8 +14,9 @@ QString FolderPath = "E:/Projects/Gallopmedia Work/Eltamimi/Data & Photos/";
 QString DatabasePath = "E:/Projects/Gallopmedia Work/Eltamimi/";
 QString TemplatePath = DatabasePath;
 QString TemplateName = "template.html";
+QString DataFileName = "DataFile.txt";
 QList<QString> TableNames;
-int RecordEnd = 14;
+int RecordEnd = 13;
 
 
 int main(int argc, char *argv[])
@@ -71,6 +72,7 @@ int main(int argc, char *argv[])
                         // if return true
                         // get full path
                         qDebug() << "Folder is OK!";
+                        qDebug() << "Writing html code...";
 
                         /*
                          * loop data from database
@@ -78,7 +80,7 @@ int main(int argc, char *argv[])
                          * stream it to file with html code
                          */
 
-                        QFile DataFile(DatabasePath+"Data & Photos/"+ProductName+"/"+"DataFile.html");
+                        QFile DataFile(DatabasePath+"Data & Photos/"+ProductName+"/"+DataFileName);
                         if (DataFile.open(QFile::WriteOnly | QFile::Text | QIODevice::Append)) {
 
                             /*
@@ -125,7 +127,7 @@ int main(int argc, char *argv[])
 
                                 QRegularExpression reA("([A-Za-z0-9:\\s,/.&)(~\"\\n\\r][^$\\r\\n])+[^$\\r\\n]+");
 
-                                QRegularExpressionMatchIterator i = reA.globalMatch(query.value(RecordStart).toString());
+                                QRegularExpressionMatchIterator i = reA.globalMatch(query.value(RecordStart+1).toString());
                                 while (i.hasNext()) {
                                     QRegularExpressionMatch match = i.next();
                                     if (match.hasMatch()) {
@@ -135,18 +137,13 @@ int main(int argc, char *argv[])
                                     }
                                 }
 
-                                if(RecordStart == 0) {
-                                    StreamToFile << "<tr>"
-                                                 << "<th>" << TableNames.at(RecordStart) << "</th>";
-                                } else {
 
                                 StreamToFile << "<tr>"
                                              << "<th rowspan='" << checkItems+1 << "'>" << TableNames.at(RecordStart) << "</th>";
-                                }
 
                                 for(int j=0;j<trtdList.count();j++)
                                 {
-                                    StreamToFile << "<tr><td>" << trtdList.at(j) << "</tr></td>";
+                                        StreamToFile << "<tr><td>" << trtdList.at(j) << "</td></tr>";
                                 }
 
                                 StreamToFile << "</tr>";
@@ -166,7 +163,7 @@ int main(int argc, char *argv[])
 
                             DataFile.flush();
                             DataFile.close();
-                            qDebug() << "file done!";
+                            qDebug() << "Writing done!";
 
                         }
 
