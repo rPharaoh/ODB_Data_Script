@@ -3,7 +3,8 @@
 * Date: 23/01/2016
 * Description: A Script for wrapping data from MS Access
 * database around html code to be put in e-commerce website
-* using template.html as header containing CSS code
+* using template.html as header containing CSS code and
+* DataFile.txt as a final data
 */
 
 #include <QCoreApplication>
@@ -30,21 +31,30 @@ void setColumnNames();
  *  Every thing stand for it self, hope so
  */
 
-QString FolderPath = "E:/Projects/Gallopmedia Work/Eltamimi/Data & Photos/";
-QString DatabasePath = "E:/Projects/Gallopmedia Work/Eltamimi/";
-QString TemplatePath = DatabasePath;
-QString TemplateName = "template.html";
-
 //#define PRODUCTION
 #define DEVELOPMENT
 
 #ifdef PRODUCTION
     #define DataFileName "DataFile.txt"
+    #define ProductPath ""
+    #define DbFolderPath  ""
 #endif
 
 #ifdef DEVELOPMENT
     #define DataFileName "DataFile.html"
+    #define ProductPath ""
+    #define DbFolderPath  ""
 #endif
+
+//folder path for the product name
+QString FolderPath = ProductPath;
+
+//folder path for the database
+QString DatabasePath = DbFolderPath;
+QString TemplatePath = DatabasePath;
+QString TemplateName = "template.html";
+QString DatabaseName = "{Name}.accdb";
+QString DatabaseFullPath = DatabasePath + DatabaseName;
 
 QList<QString> ColumnNames;
 int RecordEnd = 13;
@@ -65,8 +75,6 @@ int main(int argc, char *argv[])
     * Database Connection
     * Database Name: Eltamime.accdb
     */
-    QString DatabaseName = "Eltamime.accdb";
-    QString DatabaseFullPath = DatabasePath + DatabaseName;
     QString DSN = "Driver={Microsoft Access Driver (*.mdb, *.accdb)};FIL={MS Access};DSN='';DBQ=" + DatabaseFullPath;
     QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
             db.setDatabaseName(DSN);
