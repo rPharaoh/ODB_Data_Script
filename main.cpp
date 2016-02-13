@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
    /*
     * Database Connection
-    * Database Name: Eltamime.accdb
+    * Database Name: {name}.accdb
     */
     QString DSN = "Driver={Microsoft Access Driver (*.mdb, *.accdb)};FIL={MS Access};DSN='';DBQ=" + DatabaseFullPath;
     QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
                  */
 
                 QSqlQuery query;
-                QString qry = "SELECT * FROM Eltamime";
+                QString qry = "SELECT * FROM {Table Name}";
                 query.exec(qry);
 
                 while(query.next()) {
