@@ -1,21 +1,52 @@
+/*
+* Author: Nader Nabil
+* Date: 23/01/2016
+* Description: A Script for wrapping data from MS Access
+* database around html code to be put in e-commerce website
+* using template.html as header containing CSS code
+*/
+
 #include <QCoreApplication>
 #include <QtSql>
 
 void CreateFileWithHTMLCode(QString ProductName);
-bool MatchingFolderNameWithProductName(QString folderName);
-void setTableNames();
+bool MatchFolderName(QString folderName);
+void setColumnNames();
 
 /*
  *  Globle variables
- *  for file and folder path
+ *  for files and folders path
+ *
+ *  FolderPath: folder that containe images data
+ *  and will put the generated files into them
+ *
+ *  DatabasePath: the path of the database that will
+ *                extract from it the data
+ *
+ *  TemplatePath: the header or the head of the wrapping file
+ *
+ *  TemplateName and DataFileName for the file names
+ *
+ *  Every thing stand for it self, hope so
  */
 
 QString FolderPath = "E:/Projects/Gallopmedia Work/Eltamimi/Data & Photos/";
 QString DatabasePath = "E:/Projects/Gallopmedia Work/Eltamimi/";
 QString TemplatePath = DatabasePath;
 QString TemplateName = "template.html";
-QString DataFileName = "DataFile.txt";
-QList<QString> TableNames;
+
+//#define PRODUCTION
+#define DEVELOPMENT
+
+#ifdef PRODUCTION
+    #define DataFileName "DataFile.txt"
+#endif
+
+#ifdef DEVELOPMENT
+    #define DataFileName "DataFile.html"
+#endif
+
+QList<QString> ColumnNames;
 int RecordEnd = 13;
 
 
@@ -28,13 +59,12 @@ int main(int argc, char *argv[])
     * Activating this stupid code
     * for setting all the table names
     */
-    setTableNames();
+    setColumnNames();
 
    /*
     * Database Connection
     * Database Name: Eltamime.accdb
     */
-
     QString DatabaseName = "Eltamime.accdb";
     QString DatabaseFullPath = DatabasePath + DatabaseName;
     QString DSN = "Driver={Microsoft Access Driver (*.mdb, *.accdb)};FIL={MS Access};DSN='';DBQ=" + DatabaseFullPath;
@@ -45,15 +75,8 @@ int main(int argc, char *argv[])
                 return false;
             }
             else {
+
                 qDebug() << "Connection Success!;";
-
-                /*
-                 * Get proudct name
-                 */
-
-                QSqlQuery query;
-                QString qry = "SELECT * FROM Eltamime";
-                query.exec(qry);
 
                 /*
                  * Colums Name:
@@ -63,11 +86,13 @@ int main(int argc, char *argv[])
                  * Battery = 12, MISC = 13, Tests = 14
                  */
 
-                while(query.next()) {
-                    //qDebug() << "Product ID:" << query.value(0).toInt() << ", "
-                    //         << "Product Name:" << query.value(1).toString();
+                QSqlQuery query;
+                QString qry = "SELECT * FROM Eltamime";
+                query.exec(qry);
 
-                    if(MatchingFolderNameWithProductName(query.value(1).toString()) == true) {
+                while(query.next()) {
+
+                    if(MatchFolderName(query.value(1).toString()) == true) {
                         QString ProductName = query.value(1).toString();
                         // if return true
                         // get full path
@@ -127,6 +152,7 @@ int main(int argc, char *argv[])
 
                                 QRegularExpression reA("([A-Za-z0-9:\\s,/.&)(~\"\\n\\r][^$\\r\\n])+[^$\\r\\n]+");
 
+                                // RecordStart+1 for avoiding ID section in database
                                 QRegularExpressionMatchIterator i = reA.globalMatch(query.value(RecordStart+1).toString());
                                 while (i.hasNext()) {
                                     QRegularExpressionMatch match = i.next();
@@ -137,20 +163,17 @@ int main(int argc, char *argv[])
                                     }
                                 }
 
-
                                 StreamToFile << "<tr>"
-                                             << "<th rowspan='" << checkItems+1 << "'>" << TableNames.at(RecordStart) << "</th>";
+                                             << "<th rowspan='" << checkItems+1 << "'>"
+                                             << ColumnNames.at(RecordStart) << "</th>";
 
                                 for(int j=0;j<trtdList.count();j++)
                                 {
                                         StreamToFile << "<tr><td>" << trtdList.at(j) << "</td></tr>";
                                 }
-
                                 StreamToFile << "</tr>";
                                 RecordStart++;
-
-        }
-
+                            }
                             /*
                              * Writing end of file schema
                              * in html form
@@ -164,21 +187,18 @@ int main(int argc, char *argv[])
                             DataFile.flush();
                             DataFile.close();
                             qDebug() << "Writing done!";
-
                         }
-
                     }
                     else {
                         qDebug() << "Folder dose not exist!";
                     }
                 }
-
                 return true;
             }
     return a.exec();
 }
 
-bool MatchingFolderNameWithProductName(QString folderName) {
+bool MatchFolderName(QString folderName) {
 
    /*
     * Check if folder exist or not
@@ -195,6 +215,11 @@ bool MatchingFolderNameWithProductName(QString folderName) {
 
 void CreateFileWithHTMLCode(QString ProductName) {
 
+   /*
+    * This will be refactored later
+    * will streem file data from a loop
+    */
+
     /*
      * Read head file that
      * Contain CSS data
@@ -203,7 +228,6 @@ void CreateFileWithHTMLCode(QString ProductName) {
      * folder name
      */
 
-    QString DataFileName = "DataFile.txt";
     QString filename = TemplatePath + ProductName + "/" + DataFileName;
 
 
@@ -218,7 +242,7 @@ void CreateFileWithHTMLCode(QString ProductName) {
     if(!file.open(QFile::WriteOnly |
                   QFile::Text))
     {
-        qDebug() << " Could not open file for writing";
+        qDebug() << "Could not open file for writing";
         return;
     }
 
@@ -231,31 +255,34 @@ void CreateFileWithHTMLCode(QString ProductName) {
 
     QTextStream out(&file);
     out << "QFile";
-    file.flush();
-    file.close();
+
+    if(!EOF) {
+        file.flush();
+        file.close();
+    }
 }
 
 
-void setTableNames()
+void setColumnNames()
 {
    /*
     * Staticlly added to avoid lots of codes
     * will be modifyed later
     */
 
-    TableNames.push_front("TESTS");
-    TableNames.push_front("MISC");
-    TableNames.push_front("Battery");
-    TableNames.push_front("Features");
-    TableNames.push_front("COMMS");
-    TableNames.push_front("Sound");
-    TableNames.push_front("Camera");
-    TableNames.push_front("Memory");
-    TableNames.push_front("Platform");
-    TableNames.push_front("Display");
-    TableNames.push_front("Body");
-    TableNames.push_front("Launch");
-    TableNames.push_front("Network");
-    TableNames.push_front("Product Name");
+    ColumnNames.push_front("TESTS");
+    ColumnNames.push_front("MISC");
+    ColumnNames.push_front("Battery");
+    ColumnNames.push_front("Features");
+    ColumnNames.push_front("COMMS");
+    ColumnNames.push_front("Sound");
+    ColumnNames.push_front("Camera");
+    ColumnNames.push_front("Memory");
+    ColumnNames.push_front("Platform");
+    ColumnNames.push_front("Display");
+    ColumnNames.push_front("Body");
+    ColumnNames.push_front("Launch");
+    ColumnNames.push_front("Network");
+    ColumnNames.push_front("Product Name");
 
 }
